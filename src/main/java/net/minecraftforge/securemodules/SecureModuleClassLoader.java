@@ -7,6 +7,7 @@ package net.minecraftforge.securemodules;
 
 import java.io.IOException;
 import java.lang.module.*;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -75,6 +77,12 @@ public class SecureModuleClassLoader extends SecureClassLoader {
     private final boolean useCachedSignersForUnsignedCode;
 
     protected ClassLoader fallbackClassLoader = null;
+
+    private List<ClassLoader> child = new ArrayList();
+
+    public void addChild(ClassLoader child) {
+        this.child.add(child);
+    }
 
     // Parent should always be sent in, even if its null, this just makes my life easier - Lex
     @Deprecated(forRemoval = true, since = "10.1")
@@ -446,6 +454,21 @@ public class SecureModuleClassLoader extends SecureClassLoader {
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            if (c == null && !this.child.isEmpty()) {
+
+                for (ClassLoader child : this.child) {
+                    try {
+                        Method find = child.getClass().getDeclaredMethod("findClass", String.class);
+                        find.setAccessible(true);
+                        Class<?> classe = (Class) find.invoke(child, name);
+                        if (classe != null) {
+                            return classe;
+                        }
+                    } catch (Exception var10) {
                     }
                 }
             }

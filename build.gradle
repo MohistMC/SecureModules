@@ -7,11 +7,11 @@ plugins {
 }
 
 group = 'net.minecraftforge'
-version = gradleutils.tagOffsetVersion
+version = 'mohist-2.2.19'
 print("Version: $version")
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(16)
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
     modularity.inferModulePath.set(true)
     withSourcesJar()
 }
@@ -67,26 +67,25 @@ license {
 }
 
 publishing {
-    publications.register('mavenJava', MavenPublication) {
-        configurations.all {
-            suppressPomMetadataWarningsFor(it.name)
-        }
-        from components.java
-        artifactId = 'securemodules'
-        pom {
-            name = 'Secure Modular handler'
-            description = 'Making the Java modular system provide security information'
-            license gradleutils.pom.Licenses.LGPLv2_1
-            developers {
-                developer gradleutils.pom.Developers.cpw
-                developer gradleutils.pom.Developers.LexManos
-            }
+    publications {
+        maven(MavenPublication) {
+            groupId project.group
+            artifactId project.name.toLowerCase()
+            version project.version
+            from components.java
         }
     }
+
     repositories {
-        maven gradleutils.publishingForgeMaven
+        mavenLocal()
+
+        maven {
+            name = "Mohist-Maven"
+            setUrl("file:/maven/")
+        }
     }
 }
+
 
 // Hack eclipse into knowing that the gradle deps are modules
 eclipse.classpath {
